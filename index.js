@@ -13,16 +13,22 @@ const FIVEM_ENDPOINT = "https://servers-frontend.fivem.net/api/servers/single";
 const fivemIds = [...new Set(FIVEM_IDS?.replace(" ", "").split(",").filter(a => a))];
 
 async function update() {
-    let totalPlayers = 0;
-
-    for (const id of fivemIds) {
-        const details = (await got(FIVEM_ENDPOINT + "/" + id, { responseType: "json" }).catch(console.error))?.body?.Data;
-        if (details && details.players) {
-            totalPlayers += details.players.length;
-        }
+    if (fivemIds.length === 0) {
+        client.user.setActivity(`${client.guild.memberCount} Member${client.guild.memberCount > 1 ? "s" : ""}`, { type: ActivityType.Watching });
     }
+    else {
+        let totalPlayers = 0;
 
-    client.user.setActivity(`${totalPlayers} Joueur${totalPlayers > 1 ? "s" : ""}`, { type: ActivityType.Watching });
+        for (const id of fivemIds) {
+            const details = (await got(FIVEM_ENDPOINT + "/" + id, { responseType: "json" }).catch(console.error))?.body?.Data;
+            if (details && details.players) {
+                totalPlayers += details.players.length;
+            }
+        }
+
+
+        client.user.setActivity(`${totalPlayers} Joueur${totalPlayers > 1 ? "s" : ""}`, { type: ActivityType.Watching });
+    }
 }
 
 /* EVENTS */
@@ -61,7 +67,6 @@ client.on("ready", () => {
 });
 
 client.on("guildMemberAdd", async member => {
-    console.log("ok")
     await JoinLog.guildMemberAdd(member).catch(console.error);
 });
 
