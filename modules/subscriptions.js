@@ -1,10 +1,8 @@
-const { EmbedBuilder, Colors } = require("discord.js");
+const { EmbedBuilder, Colors, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 const client = require("../client");
 const { formatDate } = require("../utils/date");
+const { subscriptions } = require("./database");
 const Machine = require("./machines");
-
-const subscriptions = require("lowdb")(new (require("lowdb/adapters/FileSync"))("./databases/subscriptions.json"));
-subscriptions.defaults({ subscriptions: [] }).write();
 
 class Subscription {
     constructor({ id, machineId, userId, expiresAt, createdAt }) {
@@ -20,7 +18,9 @@ class Subscription {
     }
 
     get machine() {
-        return Machine.get(this.machineId);
+        if (this._machine) return this._machine;
+        this._machine = Machine.getById(this.machineId);
+        return this._machine;
     }
 
     get expired() {
@@ -43,36 +43,23 @@ class Subscription {
         return this.expiresAt < Date.now() + (inDay * 24 * 60 * 60 * 1000);
     }
 
-    generateEmbed() {
+    generateEmbed(command = "") {
         return new EmbedBuilder()
-            .setAuthor({ name: "Abonnement de " + this.member.user.tag, iconURL: this.member.user.avatarURL })
+            .setAuthor({ name: "Abonnement de " + this.member.user.tag, iconURL: this.member.user.avatarURL() })
             .setColor(Colors.DarkButNotBlack)
             .addFields(
                 { name: "ID de l'abonnement", value: this.id, inline: true },
                 { name: "ID de la machine", value: this.machineId, inline: true },
+                { name: "Machine", value: this.machine.ip + " | " + this.machine.name, inline: true },
                 { name: "Expire le", value: formatDate(this.expiresAt), inline: true },
                 { name: "Abonné depuis", value: formatDate(this.createdAt), inline: true },
-                { name: "IP de la machine", value: this.machine.ip, inline: true },
-            );
-    }
-
-    generateActionRow() {
-        return new ActionRowBuilder()
-            .addComponents(
-                new ButtonBuilder()
-                    .setCustomId("subscription-renew-" + this.id)
-                    .setLabel("Renouveler")
-                    .setStyle("PRIMARY"),
-                new ButtonBuilder()
-                    .setCustomId("subscription-remove-" + this.id)
-                    .setLabel("Supprimer")
-                    .setStyle("DANGER")
+                { name: "Commandes liées", value: (command === "ip" ? "- `/get-subscriptions user:<@" + this.userId + ">" : "- `/get-subscriptions ip:" + this.machine.ip) + "`\n- `/renew-subscription ip:" + this.machine.ip + " duration:`\n- `/remove-subscription ip:" + this.machine.ip + "`\n- `/get-machine ip:" + this.machine.ip + "`", inline: true }
             );
     }
 
     save() {
-        const subscription = subscriptions.get("subscriptions").find({ ip }).value();
-        if (subscription) subscriptions.get("subscriptions").find({ id: this.id }).assign(this).write();
+        const subscription = subscriptions.get("subscriptions").find({ id: this.id });
+        if (subscription.value()) subscription.assign(this).write();
         else subscriptions.get("subscriptions").push(this).write();
     }
 

@@ -34,13 +34,13 @@ module.exports = {
             if (!machine) throw new Error("Cette machine n'existe pas !");
             if (!machine.subscription) throw new Error("Cette machine n'a aucune souscription actuelle.");
 
-            return interaction.reply({ embeds: [machine.subscription.generateEmbed], components: [machine.subscription.generateActionRow] });
+            return interaction.reply({ embeds: [machine.subscription.generateEmbed("ip")] });
         }
         else if (user) {
             const subscriptions = Subscription.getAllByUserId(user.id);
             if (!subscriptions.length) throw new Error("Cet utilisateur n'a aucune souscription actuelle.");
 
-            return interaction.reply({ embeds: subscriptions.map(a => a.generateEmbed) });
+            return interaction.reply({ embeds: subscriptions.map(a => a.generateEmbed("user")) });
         }
     }
 }

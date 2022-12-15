@@ -37,10 +37,10 @@ module.exports = {
 
         const machine = Machine.get(ip);
         if (!machine) throw new Error("Cette machine n'existe pas !");
-        if (machine.subscription) throw new Error("Cette machine est déjà attribuée à un <@" + machine.subscription.userId + "> ! (*/remove-subcription " + machine.ip + "*)");
+        if (machine.subscription) throw new Error("Cette machine est déjà attribuée à un <@" + machine.subscription.userId + "> ! (`/remove-subcription ip:" + machine.ip + "`)");
 
         const subscription = Subscription.create(machine.id, user.id, Date.now() + duration * 24 * 60 * 60 * 1000);
 
-        return interaction.reply({ embeds: [subscription.generateEmbed], components: [subscription.generateActionRow] });
+        return interaction.reply({ embeds: [subscription.generateEmbed()] });
     }
 }

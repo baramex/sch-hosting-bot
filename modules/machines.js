@@ -1,7 +1,6 @@
-const Subscription = require("./subscriptions");
-
-const machines = require("lowdb")(new (require("lowdb/adapters/FileSync"))("./databases/machines.json"));
-machines.defaults({ machines: [] }).write();
+const { EmbedBuilder, Colors } = require("discord.js");
+const { formatDate } = require("../utils/date");
+const { machines } = require("./database");
 
 class Machine {
     constructor({ id, ip, name, users, txadmin: { link, pinCode } }) {
@@ -22,18 +21,45 @@ class Machine {
         this.save();
     }
 
+    generateEmbed() {
+        return new EmbedBuilder()
+            .setColor(Colors.DarkButNotBlack)
+            .setTitle("Machine - " + this.ip)
+            .setFields(
+                { name: "ID", value: this.id, inline: true },
+                { name: "IP", value: this.ip, inline: true },
+                { name: "Nom", value: this.name, inline: true },
+                { name: "Utilisateurs", value: (this.users.map(user => `- **${user.type}** - username: *${user.username}* | password: *||${user.password}||*`).join("\n") + "\n\nLien phpmyadmin: " + this.phpmyadminLink) || "Aucun utilisateur" },
+                { name: "TxAdmin", value: `Lien: ${this.txadmin.link}\nCode PIN: ${this.txadmin.pinCode}`, inline: true },
+                { name: "Abonnement", value: this.subscription ? `Utilisateur: <@${this.subscription.userId}>\nExpiration: ${formatDate(this.subscription.expiresAt)}` : "Aucun abonnement", inline: true },
+                { name: "Commandes liées", value: `- \`/get-subscriptions ip:${this.ip}\`\n- \`/create-subscription ip:${this.ip} user: duration:\`\n- \`/remove-subscription ip:${this.ip}\`\n- \`/renew-subscription ip:${this.ip} duration:\``, inline: true }
+            )
+    }
+
+    get phpmyadminLink() {
+        return `http://${this.ip}/phpmyadmin/`;
+    }
+
     get subscription() {
-        return Subscription.getByMachineId(this.id, true);
+        if (this._subscription) return this._subscription;
+        this._subscription = require("./subscriptions").getByMachineId(this.id);
+        return this._subscription;
     }
 
     save() {
-        const machine = machines.get("machines").find({ ip }).value();
-        if (machine) machines.get("machines").find({ id: this.id }).assign(this).write();
+        const machine = machines.get("machines").find({ id: this.id });
+        if (machine.value()) machine.assign(this).write();
         else machines.get("machines").push(this).write();
     }
 
     static get(ip) {
         const machine = machines.get("machines").find({ ip }).value();
+        if (!machine) return;
+        return new Machine(machine);
+    }
+
+    static getById(id) {
+        const machine = machines.get("machines").find({ id }).value();
         if (!machine) return;
         return new Machine(machine);
     }

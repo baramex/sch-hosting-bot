@@ -70,12 +70,10 @@ module.exports = {
         const dbRootPassword = interaction.options.get("db_root_password", true).value;
         const dbFivemPassword = interaction.options.get("db_fivem_password", true).value;
 
-        const machine = Machine.get(ip);
-        if (!machine) throw new Error("Cette machine n'existe pas !");
-        if (machine.subscription) throw new Error("Cette machine est déjà attribuée à un <@" + machine.subscription.userId + "> ! (*/remove-subcription " + machine.ip + "*)");
+        if (!/^([0-9]{1,3}\.){3}([0-9]{1,3})$/.test(ip)) throw new Error("L'ip est invalide !");
 
-        const subscription = Subscription.create(machine.id, user.id, Date.now() + duration * 24 * 60 * 60 * 1000);
+        const machine = Machine.create(ip, name, [{ type: "sftp/ssh", username: "root", password: sftpsshRootPassword }, { type: "sftp/ssh", username: "fivem", password: sftpsshFivemPassword }, { type: "mariadb/phpmyadmin", username: "root", password: dbRootPassword }, { type: "mariadb/phpmyadmin", username: "fivem", password: dbFivemPassword }], { link: txadminLink, pinCode: txadminPin });
 
-        return interaction.reply({ embeds: [subscription.generateEmbed], components: [subscription.generateActionRow] });
+        return interaction.reply({ embeds: [machine.generateEmbed()] });
     }
 }

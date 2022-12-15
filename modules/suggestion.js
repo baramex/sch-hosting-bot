@@ -1,8 +1,6 @@
 const { Message, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Colors } = require("discord.js");
 const client = require("../client");
-
-const suggestions = require("lowdb")(new (require("lowdb/adapters/FileSync"))("./databases/suggestions.json"));
-suggestions.defaults({ suggestions: [] }).write();
+const { suggestions } = require("./database");
 
 const { SUGGESTION_CHANNEL_ID } = process.env;
 
