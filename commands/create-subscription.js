@@ -15,12 +15,14 @@ module.exports = {
     {
         name: "user",
         description: "Le membre de destination.",
-        type: ApplicationCommandOptionType.User
+        type: ApplicationCommandOptionType.User,
+        required: true
     },
     {
         name: "duration",
         description: "La durée (en jour).",
-        type: ApplicationCommandOptionType.Number
+        type: ApplicationCommandOptionType.Number,
+        required: true
     }],
     /**
      * 
