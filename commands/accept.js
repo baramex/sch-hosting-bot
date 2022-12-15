@@ -1,5 +1,6 @@
-const { ApplicationCommandOptionType, CommandInteraction, PermissionsBitField } = require("discord.js");
+const { ApplicationCommandOptionType, CommandInteraction } = require("discord.js");
 const Suggestion = require("../modules/suggestion");
+const Whitelist = require("../modules/whitelist");
 
 module.exports = {
     name: "accept",
@@ -20,7 +21,7 @@ module.exports = {
      * @param {CommandInteraction} interaction 
      */
     run: async (interaction) => {
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) throw new Error("Vous n'avez pas la permission d'utiliser cette commande !");
+        if (!Whitelist.isWhitelisted(interaction.user.id)) throw new Error("Vous n'avez pas la permission d'utiliser cette commande !");
 
         const id = interaction.options.get("message_id", true).value;
         const comment = interaction.options.get("comment", false)?.value;
