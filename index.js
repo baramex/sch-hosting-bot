@@ -10,7 +10,7 @@ const { FIVEM_IDS } = process.env;
 
 /* FIVEM */
 const FIVEM_ENDPOINT = "https://servers-frontend.fivem.net/api/servers/single";
-const fivemIds = [...new Set(FIVEM_IDS?.replace(" ", "").split(",").filter(a => a))];
+const fivemIds = Array.from(new Set(FIVEM_IDS?.replace(" ", "").split(",").filter(a => a)));
 
 async function update() {
     if (fivemIds.length === 0) {
