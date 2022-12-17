@@ -53,6 +53,10 @@ class Machine {
         else machines.get("machines").push(this).write();
     }
 
+    static countClients() {
+        return machines.get("machines").value().map(a => new Machine(a)).filter(a => a && a.subscription).length;
+    }
+
     static get(ip) {
         const machine = machines.get("machines").find({ ip }).value();
         if (!machine) return;

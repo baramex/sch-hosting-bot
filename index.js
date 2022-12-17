@@ -5,6 +5,7 @@ const { ActivityType, Collection } = require("discord.js");
 const client = require("./client");
 const Suggestion = require("./modules/suggestion");
 const JoinLog = require("./modules/joinLog");
+const Stats = require("./modules/stats");
 
 const { FIVEM_IDS } = process.env;
 
@@ -41,79 +42,92 @@ client.on("ready", () => {
     setInterval(update, 1000 * 60 * 5);
 
     /* SPLASH COMMANDS */
-    client.commands = new Collection();
-    fs.readdir("./commands/", (err, files) => {
-        if (err) return console.error(err);
-        files.forEach(file => {
-            if (!file.endsWith(".js")) return;
-            let props = require(`./commands/${file}`);
+    if (!FIVEM_IDS || FIVEM_ENDPOINT.length === 0) {
+        client.commands = new Collection();
+        fs.readdir("./commands/", (err, files) => {
+            if (err) return console.error(err);
+            files.forEach(file => {
+                if (!file.endsWith(".js")) return;
+                let props = require(`./commands/${file}`);
 
-            let c = client.guild.commands.cache.find(a => a.name == props.name);
-            if (c) {
-                client.guild.commands.edit(c, { description: props.description, options: props.options || [] }).catch(console.error);
-            }
-            else {
-                client.guild.commands.create({
-                    name: props.name,
-                    description: props.description,
-                    options: props.options || []
-                }).catch(console.error);
-            }
+                let c = client.guild.commands.cache.find(a => a.name == props.name);
+                if (c) {
+                    client.guild.commands.edit(c, { description: props.description, options: props.options || [] }).catch(console.error);
+                }
+                else {
+                    client.guild.commands.create({
+                        name: props.name,
+                        description: props.description,
+                        options: props.options || []
+                    }).catch(console.error);
+                }
 
-            client.commands.set(props.name, props);
+                client.commands.set(props.name, props);
+            });
         });
-    });
+
+        Stats.update().catch(console.error);
+        setInterval(() => Stats.update().catch(console.error), 1000 * 60 * 5);
+    }
 
     console.log("Bot ready !");
 });
 
 client.on("guildMemberAdd", async member => {
-    await JoinLog.guildMemberAdd(member).catch(console.error);
+    if (!FIVEM_IDS || FIVEM_ENDPOINT.length === 0) {
+        await JoinLog.guildMemberAdd(member).catch(console.error);
+    }
 });
 
 client.on("guildMemberRemove", async member => {
-    await JoinLog.guildMemberRemove(member).catch(console.error);
+    if (!FIVEM_IDS || FIVEM_ENDPOINT.length === 0) {
+        await JoinLog.guildMemberRemove(member).catch(console.error);
+    }
 });
 
 /* SPLASH COMMANDS */
 client.on("interactionCreate", async interaction => {
-    if (!interaction.isCommand()) return;
+    if (!FIVEM_IDS || FIVEM_ENDPOINT.length === 0) {
+        if (!interaction.isCommand()) return;
 
-    const cmd = client.commands.get(interaction.commandName);
-    try {
-        if (cmd) await cmd.run(interaction);
-    }
-    catch (err) {
-        console.error("COMMAND ERROR", "Commande name: ", interaction.commandName, "Arguments: ", interaction.options.data.map(a => `${a.name}: ${a.value}`).join(" - "), "Error: ", err);
-        interaction.reply({ content: ":x: " + (err.message || "Erreur inattendue."), ephemeral: true });
+        const cmd = client.commands.get(interaction.commandName);
+        try {
+            if (cmd) await cmd.run(interaction);
+        }
+        catch (err) {
+            console.error("COMMAND ERROR", "Commande name: ", interaction.commandName, "Arguments: ", interaction.options.data.map(a => `${a.name}: ${a.value}`).join(" - "), "Error: ", err);
+            interaction.reply({ content: ":x: " + (err.message || "Erreur inattendue."), ephemeral: true });
+        }
     }
 });
 
 /* INTERACTIONS */
 client.on("interactionCreate", async interaction => {
-    if (interaction.isButton()) {
-        if (interaction.customId === "upvote") {
-            try {
-                const suggestion = Suggestion.load(interaction.message.id);
-                if (suggestion) {
-                    await suggestion.upVote(interaction.user.id);
-                }
+    if (!FIVEM_IDS || FIVEM_ENDPOINT.length === 0) {
+        if (interaction.isButton()) {
+            if (interaction.customId === "upvote") {
+                try {
+                    const suggestion = Suggestion.load(interaction.message.id);
+                    if (suggestion) {
+                        await suggestion.upVote(interaction.user.id);
+                    }
 
-                interaction.reply({ content: ":white_check_mark: Votre vote a bien été pris en compte.", ephemeral: true });
-            } catch (error) {
-                interaction.reply({ content: ":x: Une erreur s'est produite.", ephemeral: true });
+                    interaction.reply({ content: ":white_check_mark: Votre vote a bien été pris en compte.", ephemeral: true });
+                } catch (error) {
+                    interaction.reply({ content: ":x: Une erreur s'est produite.", ephemeral: true });
+                }
             }
-        }
-        else if (interaction.customId === "downvote") {
-            try {
-                const suggestion = Suggestion.load(interaction.message.id);
-                if (suggestion) {
-                    await suggestion.downVote(interaction.user.id);
-                }
+            else if (interaction.customId === "downvote") {
+                try {
+                    const suggestion = Suggestion.load(interaction.message.id);
+                    if (suggestion) {
+                        await suggestion.downVote(interaction.user.id);
+                    }
 
-                interaction.reply({ content: ":white_check_mark: Votre vote a bien été pris en compte.", ephemeral: true });
-            } catch (error) {
-                interaction.reply({ content: ":x: Une erreur s'est produite.", ephemeral: true });
+                    interaction.reply({ content: ":white_check_mark: Votre vote a bien été pris en compte.", ephemeral: true });
+                } catch (error) {
+                    interaction.reply({ content: ":x: Une erreur s'est produite.", ephemeral: true });
+                }
             }
         }
     }

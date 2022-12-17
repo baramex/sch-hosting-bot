@@ -10,4 +10,7 @@ suggestions.defaults({ suggestions: [] }).write();
 const whitelist = require("lowdb")(new (require("lowdb/adapters/FileSync"))("./databases/whitelist.json"));
 whitelist.defaults({ whitelist: ["938691020714016808"] }).write();
 
-module.exports = { subscriptions, machines, suggestions, whitelist };
+const stats = require("lowdb")(new (require("lowdb/adapters/FileSync"))("./databases/stats.json"));
+stats.defaults({}).write();
+
+module.exports = { subscriptions, machines, suggestions, whitelist, stats };
