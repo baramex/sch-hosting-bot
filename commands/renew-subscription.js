@@ -33,6 +33,11 @@ module.exports = {
         if (!machine.subscription) throw new Error("Cette machine n'a aucune souscription actuelle.");
         machine.subscription.renew(duration);
 
-        return interaction.reply({ embeds: [machine.subscription.generateEmbed()] });
+        try {
+            await machine.subscription.sendMp("Votre souscription a été renouvelée de " + duration + " jours !", true);
+            return interaction.reply({ embeds: [machine.subscription.generateEmbed()] });
+        } catch (error) {
+            return interaction.reply({ content: ":warning: Le message mp n'a pas pu être envoyé au possesseur de la machine.", embeds: [machine.subscription.generateEmbed()] });
+        }
     }
 }

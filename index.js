@@ -35,6 +35,7 @@ async function update() {
 client.on("ready", () => {
     client.guild = client.guilds.cache.get(process.env.GUILD_ID);
     if (!client.guild) throw new Error("Invalid guild id.");
+    client.guild.members.fetch();
 
     update();
     setInterval(update, 1000 * 60 * 5);

@@ -41,6 +41,11 @@ module.exports = {
 
         const subscription = Subscription.create(machine.id, user.id, Date.now() + duration * 24 * 60 * 60 * 1000);
 
-        return interaction.reply({ embeds: [subscription.generateEmbed()] });
+        try {
+            await subscription.sendMp("Votre souscription a tout juste été créée !", true);
+            return interaction.reply({ embeds: [machine.subscription.generateEmbed()] });
+        } catch (error) {
+            return interaction.reply({ content: ":warning: Le message mp n'a pas pu être envoyé au possesseur de la machine.", embeds: [machine.subscription.generateEmbed()] });
+        }
     }
 }

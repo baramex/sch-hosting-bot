@@ -1,3 +1,4 @@
+const client = require("../client.js");
 const { whitelist } = require("./database.js");
 
 class Whitelist {
@@ -12,6 +13,10 @@ class Whitelist {
 
     static removeWhitelist(id) {
         whitelist.get("whitelist").pull(id).write();
+    }
+
+    static getAllMembers() {
+        return whitelist.get("whitelist").value().map(a => client.guild.members.cache.get(a)).filter(a => a);
     }
 }
 

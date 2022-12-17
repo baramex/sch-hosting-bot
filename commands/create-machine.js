@@ -1,6 +1,5 @@
 const { ApplicationCommandOptionType, CommandInteraction } = require("discord.js");
 const Machine = require("../modules/machines");
-const Subscription = require("../modules/subscriptions");
 const Whitelist = require("../modules/whitelist");
 
 module.exports = {

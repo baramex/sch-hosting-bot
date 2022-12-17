@@ -23,8 +23,13 @@ module.exports = {
         const machine = Machine.get(ip);
         if (!machine) throw new Error("Cette machine n'existe pas !");
         if (!machine.subscription) throw new Error("Cette machine n'a aucune souscription actuelle.");
-        machine.subscription.remove();
 
-        return interaction.reply({ content: ":white_check_mark: Souscription supprimée.", ephemeral: true });
+        try {
+            await machine.subscription.sendMp("Votre souscription a été supprimée !", true);
+            machine.subscription.remove();
+            return interaction.reply({ content: ":white_check_mark: La souscription a été supprimée." });
+        } catch (error) {
+            return interaction.reply({ content: ":white_check_mark: La souscription a été supprimée.\n:warning: Le message mp n'a pas pu être envoyé au possesseur de la machine." });
+        }
     }
 }

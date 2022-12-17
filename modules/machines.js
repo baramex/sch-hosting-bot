@@ -21,8 +21,8 @@ class Machine {
         this.save();
     }
 
-    generateEmbed() {
-        return new EmbedBuilder()
+    generateEmbed(permissions = true) {
+        const embed = new EmbedBuilder()
             .setColor(Colors.DarkButNotBlack)
             .setTitle("Machine - " + this.ip)
             .setFields(
@@ -32,8 +32,9 @@ class Machine {
                 { name: "Utilisateurs", value: (this.users.map(user => `- **${user.type}** - username: *${user.username}* | password: *||${user.password}||*`).join("\n") + "\n\nLien phpmyadmin: " + this.phpmyadminLink) || "Aucun utilisateur" },
                 { name: "TxAdmin", value: `Lien: ${this.txadmin.link}\nCode PIN: ${this.txadmin.pinCode}`, inline: true },
                 { name: "Abonnement", value: this.subscription ? `Utilisateur: <@${this.subscription.userId}>\nExpiration: ${formatDate(this.subscription.expiresAt)}` : "Aucun abonnement", inline: true },
-                { name: "Commandes liées", value: `- \`/get-subscriptions ip:${this.ip}\`\n- \`/create-subscription ip:${this.ip} user: duration:\`\n- \`/remove-subscription ip:${this.ip}\`\n- \`/renew-subscription ip:${this.ip} duration:\``, inline: true }
-            )
+            );
+        if (permissions) embed.addFields({ name: "Commandes liées", value: `- \`/get-subscriptions ip:${this.ip}\`\n- \`/create-subscription ip:${this.ip} user: duration:\`\n- \`/remove-subscription ip:${this.ip}\`\n- \`/renew-subscription ip:${this.ip} duration:\``, inline: true });
+        return embed;
     }
 
     get phpmyadminLink() {
